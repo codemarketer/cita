@@ -68,48 +68,19 @@ class OfimedicService
                         ]);
                         
                         if (empty($activities)) {
-                            \Log::warning('No activities found for resource:', [
-                                'resource_id' => $resource['RESOURCE_ID']
-                            ]);
                             return false;
                         }
 
-                        $hasSpecialty = collect($activities)
+                        return collect($activities)
                             ->where('ACTIVITY_SPECIALTY_ID', $specialtyId)
                             ->isNotEmpty();
 
-                        \Log::info('Activities for resource:', [
-                            'resource_id' => $resource['RESOURCE_ID'],
-                            'activities_count' => count($activities),
-                            'specialty_id' => $specialtyId,
-                            'has_specialty' => $hasSpecialty
-                        ]);
-
-                        return $hasSpecialty;
-
                     } catch (\Exception $e) {
-                        \Log::error('Error getting activities for resource: ' . $resource['RESOURCE_ID'], [
-                            'error' => $e->getMessage(),
-                            'specialty_id' => $specialtyId
+                        \Log::error('Error getting activities for resource:', [
+                            'resource_id' => $resource['RESOURCE_ID'],
+                            'error' => $e->getMessage()
                         ]);
-                        
-                        // Si hay un error, intentamos una vez más
-                        try {
-                            sleep(1); // Esperamos 1 segundo antes de reintentar
-                            $activities = $this->get('GetActivities', [
-                                'RESOURCE_ID' => $resource['RESOURCE_ID'],
-                                'INSURANCE_ID' => ''
-                            ]);
-                            
-                            return collect($activities)
-                                ->where('ACTIVITY_SPECIALTY_ID', $specialtyId)
-                                ->isNotEmpty();
-                        } catch (\Exception $e2) {
-                            \Log::error('Second attempt failed for resource: ' . $resource['RESOURCE_ID'], [
-                                'error' => $e2->getMessage()
-                            ]);
-                            return false;
-                        }
+                        return false;
                     }
                 })
                 ->map(function ($resource) {
@@ -121,19 +92,16 @@ class OfimedicService
                 ->values();
 
             if ($filtered->isEmpty()) {
-                \Log::warning('No doctors found for specialty:', ['specialty_id' => $specialtyId]);
-                cache()->forget('doctors_specialty_' . $specialtyId); // Eliminamos la cache si no hay resultados
-            } else {
-                \Log::info('Filtered doctors:', ['count' => count($filtered)]);
+                cache()->forget('doctors_specialty_' . $specialtyId);
             }
             
             return $filtered;
         });
     }
 
-    public function getVisitTypes($doctorId)
+    public function getVisitTypes($doctorId, $specialtyId)
     {
-        \Log::info('Getting visit types for doctor:', ['doctor_id' => $doctorId]);
+        \Log::info('Getting visit types for doctor:', ['doctor_id' => $doctorId, 'specialty_id' => $specialtyId]);
         
         $activities = $this->get('GetActivities', [
             'RESOURCE_ID' => $doctorId,
@@ -142,7 +110,19 @@ class OfimedicService
         
         \Log::info('Activities received:', ['activities' => $activities]);
         
-        return $activities;  // Return the full response for now to see what we're getting
+        // Lista de IDs a excluir
+        $excludedIds = [30, 53, 67, 72, 9, 10, 12, 50, 5, 6, 49, 52, 81, 87, 51, 86, 54, 51];
+        
+        // Filtrar las actividades por especialidad y excluyendo los IDs especificados
+        return collect($activities)
+            ->filter(function ($activity) use ($specialtyId) {
+                return $activity['ACTIVITY_SPECIALTY_ID'] == $specialtyId;
+            })
+            ->reject(function ($activity) use ($excludedIds) {
+                return in_array($activity['ACTIVITY_ID'], $excludedIds);
+            })
+            ->values()
+            ->all();
     }
 
     public function getAvailableSlots($doctorId, $activityId, $startDate)

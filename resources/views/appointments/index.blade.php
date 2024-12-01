@@ -119,16 +119,105 @@
                         </template>
 
                         <!-- More available slots -->
-                        <div x-show="showMoreSlots && availableSlots.length > 1" class="mt-4 grid grid-cols-2 gap-2">
-                            <template x-for="slot in availableSlots.slice(1)" :key="`${slot.AVA_DATE}-${slot.AVA_START_TIME}`">
-                                <button 
-                                    @click="selectSlot(slot)"
-                                    :class="{'ring-2 ring-blue-500': selectedSlot === slot}"
-                                    class="p-3 text-left border rounded-md hover:bg-gray-50">
-                                    <span x-text="formatDate(slot.AVA_DATE)" class="block font-medium"></span>
-                                    <span x-text="formatTime(slot.AVA_START_TIME)" class="text-gray-600"></span>
+                        <div x-show="showMoreSlots && availableSlots.length > 1" class="mt-4">
+                            <!-- Calendar header -->
+                            <div class="flex items-center justify-between mb-4">
+                                <button @click="previousMonth" class="p-2 hover:bg-gray-100 rounded-full">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                                    </svg>
                                 </button>
-                            </template>
+                                <h3 class="text-lg font-semibold" x-text="formatMonthYear(currentMonth)"></h3>
+                                <button @click="nextMonth" class="p-2 hover:bg-gray-100 rounded-full">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <!-- Calendar grid -->
+                            <div class="border border-gray-200 rounded-lg">
+                                <!-- Days of week header -->
+                                <div class="grid grid-cols-7 gap-px bg-gray-50 border-b border-gray-200 text-xs text-gray-500">
+                                    <div class="px-2 py-2 text-center">Lun</div>
+                                    <div class="px-2 py-2 text-center">Mar</div>
+                                    <div class="px-2 py-2 text-center">Mié</div>
+                                    <div class="px-2 py-2 text-center">Jue</div>
+                                    <div class="px-2 py-2 text-center">Vie</div>
+                                    <div class="px-2 py-2 text-center">Sáb</div>
+                                    <div class="px-2 py-2 text-center">Dom</div>
+                                </div>
+
+                                <!-- Calendar days -->
+                                <div class="bg-white">
+                                    <template x-for="(week, weekIndex) in calendarWeeks" :key="weekIndex">
+                                        <div class="grid grid-cols-7 border-b last:border-b-0">
+                                            <template x-for="(day, dayIndex) in week" :key="dayIndex">
+                                                <div 
+                                                    class="min-h-[80px] border-r last:border-r-0 relative"
+                                                    :class="{ 
+                                                        'bg-gray-50': !day.date,
+                                                        'cursor-pointer hover:bg-blue-50': day.date && day.slots.length > 0,
+                                                        'bg-blue-50': selectedDay === day
+                                                    }"
+                                                    @click="day.date && day.slots.length > 0 && selectDay(day)"
+                                                >
+                                                    <template x-if="day.date">
+                                                        <div class="p-2 flex flex-col items-center">
+                                                            <span 
+                                                                class="text-sm mb-1"
+                                                                :class="{
+                                                                    'text-gray-900': day.date && day.slots.length > 0,
+                                                                    'text-gray-400': !day.slots.length
+                                                                }"
+                                                                x-text="day.date.getDate()">
+                                                            </span>
+                                                            <!-- Period indicators -->
+                                                            <template x-if="day.slots.length > 0">
+                                                                <div class="flex flex-col gap-1 items-center">
+                                                                    <template x-if="getSlotPeriods(day.slots).hasMorning">
+                                                                        <span class="text-[10px] px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded-full">
+                                                                            Mañana
+                                                                        </span>
+                                                                    </template>
+                                                                    <template x-if="getSlotPeriods(day.slots).hasAfternoon">
+                                                                        <span class="text-[10px] px-1.5 py-0.5 bg-orange-100 text-orange-700 rounded-full">
+                                                                            Tarde
+                                                                        </span>
+                                                                    </template>
+                                                                </div>
+                                                            </template>
+                                                        </div>
+                                                    </template>
+                                                </div>
+                                            </template>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+
+                            <!-- Time slots for selected day -->
+                            <div 
+                                id="available-hours"
+                                x-show="selectedDay && selectedDay.slots.length > 0" 
+                                class="mt-4 bg-white rounded-lg border border-gray-200 p-4"
+                            >
+                                <h4 class="text-sm font-medium text-gray-900 mb-3" x-text="selectedDay ? formatDate(formatDayNumber(selectedDay.date)) : ''"></h4>
+                                <div class="grid grid-cols-3 gap-2">
+                                    <template x-for="slot in selectedDay?.slots" :key="slot.AVA_START_TIME">
+                                        <button
+                                            @click="selectSlot(slot)"
+                                            class="px-3 py-2 text-sm rounded-md border transition-colors"
+                                            :class="{
+                                                'bg-blue-600 text-white hover:bg-blue-700 border-transparent': selectedSlot !== slot,
+                                                'bg-white text-blue-600 border-blue-600': selectedSlot === slot
+                                            }"
+                                        >
+                                            <span x-text="formatTime(slot.AVA_START_TIME)"></span>
+                                        </button>
+                                    </template>
+                                </div>
+                            </div>
                         </div>
 
                         <div x-show="!availableSlots || availableSlots.length === 0" class="text-center py-4 text-gray-500">
@@ -179,7 +268,10 @@
                     patient_email: '',
                     patient_phone: ''
                 },
-
+                calendarWeeks: [],
+                currentMonth: new Date(),
+                selectedDay: null,
+                
                 async loadDoctors() {
                     this.loadingDoctors = true;
                     this.doctors = [];
@@ -204,7 +296,7 @@
                     this.selectedSlot = null;
                     
                     try {
-                        const response = await fetch(`/appointments/visit-types?doctor_id=${this.doctor}`);
+                        const response = await fetch(`/appointments/visit-types?doctor_id=${this.doctor}&specialty_id=${this.specialty}`);
                         const data = await response.json();
                         this.visitTypes = data;
                     } catch (error) {
@@ -218,12 +310,27 @@
                     this.loadingSlots = true;
                     this.availableSlots = [];
                     this.selectedSlot = null;
+                    this.selectedDay = null;
                     this.showMoreSlots = false;
                     
                     try {
                         const response = await fetch(`/appointments/slots?doctor_id=${this.doctor}&activity_id=${this.visitType}`);
                         const data = await response.json();
                         this.availableSlots = data;
+                        
+                        // Inicializar el calendario en el mes del primer slot disponible
+                        if (this.availableSlots && this.availableSlots.length > 0) {
+                            // Encuentra el primer slot disponible
+                            const firstSlotDate = this.availableSlots[0].AVA_DATE;
+                            const [day, month, year] = firstSlotDate.split('/');
+                            this.currentMonth = new Date(year, parseInt(month) - 1, day);
+                        } else {
+                            // Si no hay slots, mostrar el mes actual
+                            this.currentMonth = new Date();
+                        }
+                        
+                        this.initializeCalendar();
+                        console.log('Current month set to:', this.currentMonth);
                     } catch (error) {
                         console.error('Error loading slots:', error);
                     } finally {
@@ -281,29 +388,112 @@
                     return timeStr.substring(0, 5);
                 },
 
-                groupSlotsByWeek(slots) {
-                    const groupedSlots = [];
+                initializeCalendar() {
+                    const firstDay = new Date(this.currentMonth.getFullYear(), this.currentMonth.getMonth(), 1);
+                    const lastDay = new Date(this.currentMonth.getFullYear(), this.currentMonth.getMonth() + 1, 0);
+                    
+                    this.calendarWeeks = this.generateCalendarDays(firstDay, lastDay);
+                },
+
+                generateCalendarDays(firstDay, lastDay) {
+                    console.log('Generating calendar for:', firstDay, lastDay);
+                    console.log('Available slots:', this.availableSlots);
+                    const weeks = [];
                     let currentWeek = [];
-                    let currentDate = null;
-
-                    slots.forEach(slot => {
-                        const date = new Date(slot.AVA_DATE);
-                        if (!currentDate || date.getDate() !== currentDate.getDate()) {
-                            currentDate = date;
+                    
+                    // Ajustamos para que la semana empiece en lunes (1) en lugar de domingo (0)
+                    const firstDayOfWeek = firstDay.getDay() || 7;
+                    
+                    // Añadimos días vacíos para la primera semana (ajustado para empezar en lunes)
+                    for (let i = 1; i < firstDayOfWeek; i++) {
+                        currentWeek.push({ date: null, slots: [] });
+                    }
+                    
+                    // Añadimos todos los días del mes
+                    for (let day = 1; day <= lastDay.getDate(); day++) {
+                        const date = new Date(firstDay.getFullYear(), firstDay.getMonth(), day);
+                        const dateStr = this.formatDayNumber(date);
+                        
+                        const daySlots = this.availableSlots.filter(slot => {
+                            const matches = slot.AVA_DATE === dateStr;
+                            if (matches) {
+                                console.log(`Found slots for ${dateStr}:`, slot);
+                            }
+                            return matches;
+                        });
+                        
+                        currentWeek.push({ 
+                            date: date,
+                            slots: daySlots
+                        });
+                        
+                        if (currentWeek.length === 7) {
+                            weeks.push(currentWeek);
                             currentWeek = [];
-                            groupedSlots.push(currentWeek);
                         }
-                        currentWeek.push(slot);
-                    });
+                    }
+                    
+                    // Rellenamos la última semana con días vacíos si es necesario
+                    while (currentWeek.length < 7) {
+                        currentWeek.push({ date: null, slots: [] });
+                    }
+                    if (currentWeek.length > 0) {
+                        weeks.push(currentWeek);
+                    }
+                    
+                    return weeks;
+                },
 
-                    return groupedSlots;
+                previousMonth() {
+                    this.currentMonth = new Date(this.currentMonth.getFullYear(), this.currentMonth.getMonth() - 1);
+                    this.initializeCalendar();
+                },
+
+                nextMonth() {
+                    this.currentMonth = new Date(this.currentMonth.getFullYear(), this.currentMonth.getMonth() + 1);
+                    this.initializeCalendar();
+                },
+
+                formatMonthYear(date) {
+                    return new Intl.DateTimeFormat('es-ES', { 
+                        month: 'long',
+                        year: 'numeric'
+                    }).format(date);
                 },
 
                 formatDayNumber(date) {
-                    const day = date.getDate();
-                    const month = date.getMonth() + 1;
+                    if (!date) return '';
+                    const day = date.getDate().toString().padStart(2, '0');
+                    const month = (date.getMonth() + 1).toString().padStart(2, '0');
                     const year = date.getFullYear();
                     return `${day}/${month}/${year}`;
+                },
+
+                isMorningSlot(time) {
+                    const hour = parseInt(time.split(':')[0]);
+                    return hour < 15; // Consideramos mañana hasta las 15:00
+                },
+
+                getSlotPeriods(slots) {
+                    const hasMorning = slots.some(slot => this.isMorningSlot(slot.AVA_START_TIME));
+                    const hasAfternoon = slots.some(slot => !this.isMorningSlot(slot.AVA_START_TIME));
+                    return { hasMorning, hasAfternoon };
+                },
+
+                selectDay(day) {
+                    console.log('Selecting day:', day);
+                    if (day.slots.length > 0) {
+                        this.selectedDay = day;
+                        this.selectedSlot = null;
+                        
+                        // Esperar al siguiente ciclo para asegurar que el elemento existe
+                        this.$nextTick(() => {
+                            const hoursSection = document.getElementById('available-hours');
+                            if (hoursSection) {
+                                hoursSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            }
+                        });
+                    }
                 }
             }
         }

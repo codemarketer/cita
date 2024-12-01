@@ -28,7 +28,10 @@ class AppointmentController extends Controller
 
     public function getVisitTypes(Request $request)
     {
-        $visitTypes = $this->ofimedicService->getVisitTypes($request->doctor_id);
+        $visitTypes = $this->ofimedicService->getVisitTypes(
+            $request->doctor_id,
+            $request->specialty_id
+        );
         return response()->json($visitTypes);
     }
 
