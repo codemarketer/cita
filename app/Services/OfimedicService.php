@@ -134,7 +134,8 @@ class OfimedicService
             'RESOURCE_ID' => $doctorId,
             'ACTIVITY_ID' => $activityId,
             'LOCATION_ID' => '',
-            'INSURANCE_ID' => ''
+            'INSURANCE_ID' => '',
+            'AVA_RESULTS_NUMBER' => ''
         ]);
     }
 
