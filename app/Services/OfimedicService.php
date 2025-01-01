@@ -127,21 +127,84 @@ class OfimedicService
 
     public function getAvailableSlots($doctorId, $activityId, $startDate)
     {
-        return $this->get('SearchAvailabilities', [
-            'AVA_START_DAY' => $startDate->format('d/m/Y'),
-            'AVA_START_TIME' => '00:00',
-            'AVA_END_DAY' => $startDate->addDays(30)->format('d/m/Y'),
-            'RESOURCE_ID' => $doctorId,
-            'ACTIVITY_ID' => $activityId,
-            'LOCATION_ID' => '',
-            'INSURANCE_ID' => '',
-            'AVA_RESULTS_NUMBER' => ''
-        ]);
+        $locations = ['3', '4']; // Campanar and Mestalla locations
+        $allSlots = [];
+        
+        foreach ($locations as $locationId) {
+            try {
+                // Clonamos la fecha para cada iteración
+                $currentDate = clone $startDate;
+                $now = now();
+                
+                \Log::info('Requesting slots for location:', [
+                    'location_id' => $locationId,
+                    'doctor_id' => $doctorId,
+                    'activity_id' => $activityId,
+                    'start_date' => $currentDate->format('d/m/Y')
+                ]);
+                
+                $slots = $this->get('SearchAvailabilities', [
+                    'AVA_START_DAY' => $currentDate->format('d/m/Y'),
+                    'AVA_START_TIME' => '00:00', // Keep it at 00:00 to get all slots
+                    'AVA_END_DAY' => $currentDate->addDays(30)->format('d/m/Y'),
+                    'RESOURCE_ID' => $doctorId,
+                    'ACTIVITY_ID' => $activityId,
+                    'LOCATION_ID' => $locationId,
+                    'INSURANCE_ID' => '',
+                    'AVA_RESULTS_NUMBER' => ''
+                ]);
+                
+                // Filter out past dates (but allow any time for future dates)
+                if (is_array($slots)) {
+                    $slots = array_filter($slots, function($slot) use ($now) {
+                        $slotDate = \Carbon\Carbon::createFromFormat('d/m/Y', $slot['AVA_DATE'])->startOfDay();
+                        $today = $now->copy()->startOfDay();
+                        
+                        if ($slotDate->isAfter($today)) {
+                            return true; // Future date, keep all times
+                        } elseif ($slotDate->equalTo($today)) {
+                            // For today, only filter times that have already passed
+                            $slotTime = \Carbon\Carbon::createFromFormat('H:i', $slot['AVA_START_TIME']);
+                            return $slotTime->isAfter($now);
+                        }
+                        return false; // Past date, filter out
+                    });
+                    
+                    foreach ($slots as &$slot) {
+                        $slot['LOCATION_ID'] = $locationId;
+                    }
+                    $allSlots = array_merge($allSlots, $slots);
+                }
+                
+            } catch (\Exception $e) {
+                \Log::error('Error getting slots for location:', [
+                    'location_id' => $locationId,
+                    'error' => $e->getMessage()
+                ]);
+            }
+        }
+        
+        return array_values($allSlots); // Reset array keys after filtering
     }
 
     public function createAppointment($data)
     {
-        return $this->get('AddAppointment', $data);
+        // Aseguramos que todos los parámetros opcionales estén presentes
+        $defaultParams = [
+            'PATIENT_ID' => '',
+            'APPOINTMENT_REASON' => '',
+            'INSURANCE_ID' => '',
+            'PATIENT_ID_NUMBER' => '',
+            'OTHER_FIRST_NAME' => '',
+            'OTHER_SECOND_NAME' => '',
+            'OTHER_DATE_OF_BIRTH' => '',
+            'OTHER_GENDER' => ''
+        ];
+
+        // Combinamos los parámetros proporcionados con los valores por defecto
+        $appointmentData = array_merge($defaultParams, $data);
+
+        return $this->get('AddAppointment', $appointmentData);
     }
 
     public function clearDoctorsCache($specialtyId = null)

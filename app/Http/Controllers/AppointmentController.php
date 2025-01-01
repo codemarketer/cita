@@ -51,26 +51,39 @@ class AppointmentController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'date' => 'required|date',
-            'time' => 'required',
-            'doctor_id' => 'required',
-            'activity_id' => 'required',
-            'patient_name' => 'required',
-            'patient_email' => 'required|email',
-            'patient_phone' => 'required'
+            'APP_DATE' => 'required',
+            'APP_START_TIME' => 'required',
+            'RESOURCE_ID' => 'required',
+            'ACTIVITY_ID' => 'required',
+            'LOCATION_ID' => 'required',
+            'PATIENT_FIRST_NAME' => 'required',
+            'PATIENT_SECOND_NAME' => 'required',
+            'PATIENT_EMAIL' => 'required|email',
+            'PATIENT_MOBILE_PHONE' => 'required'
         ]);
 
-        $appointment = $this->ofimedicService->createAppointment([
-            'APP_DATE' => $validated['date'],
-            'APP_START_TIME' => $validated['time'],
-            'RESOURCE_ID' => $validated['doctor_id'],
-            'ACTIVITY_ID' => $validated['activity_id'],
-            'PATIENT_FIRST_NAME' => $validated['patient_name'],
-            'PATIENT_EMAIL' => $validated['patient_email'],
-            'PATIENT_MOBILE_PHONE' => $validated['patient_phone'],
-            'APPOINTMENT_TYPE' => '1' // Presencial por defecto
-        ]);
+        try {
+            $appointment = $this->ofimedicService->createAppointment([
+                'APP_DATE' => $validated['APP_DATE'],
+                'APP_START_TIME' => $validated['APP_START_TIME'],
+                'RESOURCE_ID' => $validated['RESOURCE_ID'],
+                'ACTIVITY_ID' => $validated['ACTIVITY_ID'],
+                'LOCATION_ID' => $validated['LOCATION_ID'],
+                'PATIENT_FIRST_NAME' => $validated['PATIENT_FIRST_NAME'],
+                'PATIENT_SECOND_NAME' => $validated['PATIENT_SECOND_NAME'],
+                'PATIENT_EMAIL' => $validated['PATIENT_EMAIL'],
+                'PATIENT_MOBILE_PHONE' => $validated['PATIENT_MOBILE_PHONE'],
+                'APPOINTMENT_TYPE' => '1'
+            ]);
 
-        return response()->json($appointment);
+            \Log::info('Appointment creation response:', ['response' => $appointment]);
+            return response()->json($appointment);
+        } catch (\Exception $e) {
+            \Log::error('Error creating appointment:', ['error' => $e->getMessage()]);
+            return response()->json([
+                'RESULT' => 'ERROR',
+                'ERROR_MESSAGE' => $e->getMessage()
+            ], 500);
+        }
     }
 } 

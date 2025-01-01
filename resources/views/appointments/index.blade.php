@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Cita Online - Clínica NYR</title>
     <script src="//unpkg.com/alpinejs" defer></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -63,9 +64,9 @@
                     </select>
                 </div>
 
-                <!-- Paso 4: Selección de fecha y hora -->
+                <!-- Paso 4: Selección de centro y horario -->
                 <div x-show="visitType" class="bg-white p-6 rounded-lg shadow">
-                    <h2 class="text-xl font-semibold mb-4">4. Seleccione fecha y hora</h2>
+                    <h2 class="text-xl font-semibold mb-4">4. Seleccione centro y horario</h2>
                     
                     <!-- Loading state -->
                     <div x-show="loadingSlots" class="flex items-center justify-center py-4">
@@ -79,150 +80,153 @@
                     <!-- Slots display -->
                     <div x-show="!loadingSlots">
                         <template x-if="availableSlots && availableSlots.length > 0">
-                            <div class="mb-4">
-                                <div class="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                                    <p class="text-sm text-blue-600 mb-2">Primera cita disponible:</p>
-                                    <div class="w-full text-left p-3 bg-white rounded-md shadow-sm">
-                                        <div class="flex justify-between items-center">
+                            <div class="space-y-6">
+                                <!-- Location selection -->
+                                <div class="space-y-4">
+                                    <!-- Clínica NYR Campanar -->
+                                    <div class="p-4 bg-white rounded-lg border transition-all hover:border-blue-200"
+                                         :class="{'border-blue-500 ring-2 ring-blue-200': selectedLocation === '3', 'border-gray-200': selectedLocation !== '3'}">
+                                        <div class="flex items-center justify-between mb-2">
+                                            <h3 class="text-lg font-medium">Clínica NYR Campanar</h3>
+                                        </div>
+                                        
+                                        <template x-if="getFirstSlotForLocation('3')">
                                             <div>
-                                                <span x-text="formatDate(availableSlots[0].AVA_DATE)" class="font-medium"></span>
-                                                <span x-text="formatTime(availableSlots[0].AVA_START_TIME)" class="ml-2 text-gray-600"></span>
+                                                <p class="text-sm text-gray-600 mb-1">Primera cita disponible:</p>
+                                                <div class="flex items-center justify-between">
+                                                    <div class="text-base">
+                                                        <span x-text="formatDate(getFirstSlotForLocation('3').AVA_DATE)" class="font-medium"></span>
+                                                        <span x-text="formatTime(getFirstSlotForLocation('3').AVA_START_TIME)" class="ml-1 text-gray-600"></span>
+                                                    </div>
+                                                    <button @click="selectedLocation = '3'" 
+                                                            class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                                                        Seleccionar este centro
+                                                    </button>
+                                                </div>
                                             </div>
-                                            <button 
-                                                @click="selectSlot(availableSlots[0])"
-                                                :class="{
-                                                    'bg-blue-600 text-white hover:bg-blue-700': selectedSlot !== availableSlots[0],
-                                                    'bg-white text-blue-600 border-blue-600': selectedSlot === availableSlots[0]
-                                                }"
-                                                class="px-6 py-2 rounded-md border transition-colors font-medium">
-                                                <span x-text="selectedSlot === availableSlots[0] ? 'Cita seleccionada ✓' : 'Seleccionar esta cita'"></span>
+                                        </template>
+                                        
+                                        <template x-if="!getFirstSlotForLocation('3')">
+                                            <p class="text-gray-500 text-sm">No hay citas disponibles</p>
+                                        </template>
+                                    </div>
+
+                                    <!-- Clínica NYR Mestalla -->
+                                    <div class="p-4 bg-white rounded-lg border transition-all hover:border-blue-200"
+                                         :class="{'border-blue-500 ring-2 ring-blue-200': selectedLocation === '4', 'border-gray-200': selectedLocation !== '4'}">
+                                        <div class="flex items-center justify-between mb-2">
+                                            <h3 class="text-lg font-medium">Clínica NYR Mestalla</h3>
+                                        </div>
+                                        
+                                        <template x-if="getFirstSlotForLocation('4')">
+                                            <div>
+                                                <p class="text-sm text-gray-600 mb-1">Primera cita disponible:</p>
+                                                <div class="flex items-center justify-between">
+                                                    <div class="text-base">
+                                                        <span x-text="formatDate(getFirstSlotForLocation('4').AVA_DATE)" class="font-medium"></span>
+                                                        <span x-text="formatTime(getFirstSlotForLocation('4').AVA_START_TIME)" class="ml-1 text-gray-600"></span>
+                                                    </div>
+                                                    <button @click="selectedLocation = '4'" 
+                                                            class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                                                        Seleccionar este centro
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </template>
+                                        
+                                        <template x-if="!getFirstSlotForLocation('4')">
+                                            <p class="text-gray-500 text-sm">No hay citas disponibles</p>
+                                        </template>
+                                    </div>
+                                </div>
+
+                                <!-- Calendar view (only shown after location selection) -->
+                                <template x-if="selectedLocation">
+                                    <div class="mt-6">
+                                        <!-- Calendar navigation -->
+                                        <div class="flex items-center justify-between mb-4">
+                                            <button @click="previousMonth" class="text-gray-600 hover:text-gray-800">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                                                </svg>
+                                            </button>
+                                            <h3 class="text-lg font-medium" x-text="formatMonthYear(currentMonth)"></h3>
+                                            <button @click="nextMonth" class="text-gray-600 hover:text-gray-800">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                                </svg>
                                             </button>
                                         </div>
-                                    </div>
-                                    <button 
-                                        x-show="availableSlots.length > 1"
-                                        @click="showMoreSlots = !showMoreSlots"
-                                        class="mt-4 text-blue-600 hover:text-blue-800 text-sm w-full flex items-center justify-center gap-2">
-                                        <span x-text="showMoreSlots ? 'Ver menos horarios' : 'Ver más horarios disponibles'"></span>
-                                        <svg 
-                                            xmlns="http://www.w3.org/2000/svg" 
-                                            class="h-4 w-4 transition-transform"
-                                            :class="showMoreSlots ? 'rotate-180' : ''"
-                                            fill="none" 
-                                            viewBox="0 0 24 24" 
-                                            stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                                        </svg>
-                                    </button>
-                                </div>
-                            </div>
-                        </template>
 
-                        <!-- More available slots -->
-                        <div x-show="showMoreSlots && availableSlots.length > 1" class="mt-4">
-                            <!-- Calendar header -->
-                            <div class="flex items-center justify-between mb-4">
-                                <button @click="previousMonth" class="p-2 hover:bg-gray-100 rounded-full">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-                                    </svg>
-                                </button>
-                                <h3 class="text-lg font-semibold" x-text="formatMonthYear(currentMonth)"></h3>
-                                <button @click="nextMonth" class="p-2 hover:bg-gray-100 rounded-full">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                                    </svg>
-                                </button>
-                            </div>
+                                        <!-- Calendar grid -->
+                                        <div class="grid grid-cols-7 gap-1">
+                                            <!-- Days of week headers -->
+                                            <template x-for="day in ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']">
+                                                <div class="text-center text-sm font-medium text-gray-600 py-2" x-text="day"></div>
+                                            </template>
 
-                            <!-- Calendar grid -->
-                            <div class="border border-gray-200 rounded-lg">
-                                <!-- Days of week header -->
-                                <div class="grid grid-cols-7 gap-px bg-gray-50 border-b border-gray-200 text-xs text-gray-500">
-                                    <div class="px-2 py-2 text-center">Lun</div>
-                                    <div class="px-2 py-2 text-center">Mar</div>
-                                    <div class="px-2 py-2 text-center">Mié</div>
-                                    <div class="px-2 py-2 text-center">Jue</div>
-                                    <div class="px-2 py-2 text-center">Vie</div>
-                                    <div class="px-2 py-2 text-center">Sáb</div>
-                                    <div class="px-2 py-2 text-center">Dom</div>
-                                </div>
-
-                                <!-- Calendar days -->
-                                <div class="bg-white">
-                                    <template x-for="(week, weekIndex) in calendarWeeks" :key="weekIndex">
-                                        <div class="grid grid-cols-7 border-b last:border-b-0">
-                                            <template x-for="(day, dayIndex) in week" :key="dayIndex">
-                                                <div 
-                                                    class="min-h-[80px] border-r last:border-r-0 relative"
-                                                    :class="{ 
-                                                        'bg-gray-50': !day.date,
-                                                        'cursor-pointer hover:bg-blue-50': day.date && day.slots.length > 0,
-                                                        'bg-blue-50': selectedDay === day
-                                                    }"
-                                                    @click="day.date && day.slots.length > 0 && selectDay(day)"
-                                                >
-                                                    <template x-if="day.date">
-                                                        <div class="p-2 flex flex-col items-center">
-                                                            <span 
-                                                                class="text-sm mb-1"
+                                            <!-- Calendar days -->
+                                            <template x-for="week in calendarWeeks">
+                                                <template x-for="day in week">
+                                                    <div 
+                                                        class="aspect-square p-1 relative"
+                                                        :class="{
+                                                            'opacity-50': !day.date || !day.slots.length,
+                                                            'cursor-pointer hover:bg-gray-50': day.slots.length
+                                                        }"
+                                                    >
+                                                        <template x-if="day.date">
+                                                            <div
+                                                                @click="day.slots.length && selectDay(day)"
+                                                                class="w-full h-full flex flex-col items-center justify-center rounded-lg"
                                                                 :class="{
-                                                                    'text-gray-900': day.date && day.slots.length > 0,
-                                                                    'text-gray-400': !day.slots.length
+                                                                    'bg-blue-50 ring-2 ring-blue-200': selectedDay && day.date.getTime() === selectedDay.date.getTime(),
+                                                                    'hover:border hover:border-blue-200': day.slots.length
                                                                 }"
-                                                                x-text="day.date.getDate()">
-                                                            </span>
-                                                            <!-- Period indicators -->
-                                                            <template x-if="day.slots.length > 0">
-                                                                <div class="flex flex-col gap-1 items-center">
-                                                                    <template x-if="getSlotPeriods(day.slots).hasMorning">
-                                                                        <span class="text-[10px] px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded-full">
-                                                                            Mañana
-                                                                        </span>
-                                                                    </template>
-                                                                    <template x-if="getSlotPeriods(day.slots).hasAfternoon">
-                                                                        <span class="text-[10px] px-1.5 py-0.5 bg-orange-100 text-orange-700 rounded-full">
-                                                                            Tarde
-                                                                        </span>
-                                                                    </template>
-                                                                </div>
-                                                            </template>
-                                                        </div>
-                                                    </template>
-                                                </div>
+                                                            >
+                                                                <span class="text-sm" x-text="day.date.getDate()"></span>
+                                                                <template x-if="day.slots.length">
+                                                                    <div class="flex gap-1 mt-1">
+                                                                        <template x-if="getSlotPeriods(day.slots).hasMorning">
+                                                                            <div class="w-1.5 h-1.5 rounded-full bg-blue-400"></div>
+                                                                        </template>
+                                                                        <template x-if="getSlotPeriods(day.slots).hasAfternoon">
+                                                                            <div class="w-1.5 h-1.5 rounded-full bg-green-400"></div>
+                                                                        </template>
+                                                                    </div>
+                                                                </template>
+                                                            </div>
+                                                        </template>
+                                                    </div>
+                                                </template>
                                             </template>
                                         </div>
-                                    </template>
-                                </div>
-                            </div>
 
-                            <!-- Time slots for selected day -->
-                            <div 
-                                id="available-hours"
-                                x-show="selectedDay && selectedDay.slots.length > 0" 
-                                class="mt-4 bg-white rounded-lg border border-gray-200 p-4"
-                            >
-                                <h4 class="text-sm font-medium text-gray-900 mb-3" x-text="selectedDay ? formatDate(formatDayNumber(selectedDay.date)) : ''"></h4>
-                                <div class="grid grid-cols-3 gap-2">
-                                    <template x-for="slot in selectedDay?.slots" :key="slot.AVA_START_TIME">
-                                        <button
-                                            @click="selectSlot(slot)"
-                                            class="px-3 py-2 text-sm rounded-md border transition-colors"
-                                            :class="{
-                                                'bg-blue-600 text-white hover:bg-blue-700 border-transparent': selectedSlot !== slot,
-                                                'bg-white text-blue-600 border-blue-600': selectedSlot === slot
-                                            }"
-                                        >
-                                            <span x-text="formatTime(slot.AVA_START_TIME)"></span>
-                                        </button>
-                                    </template>
-                                </div>
+                                        <!-- Available hours for selected day -->
+                                        <template x-if="selectedDay">
+                                            <div id="available-hours" class="mt-6">
+                                                <h4 class="text-lg font-medium mb-4">Horarios disponibles para <span x-text="formatDate(selectedDay.date)"></span></h4>
+                                                
+                                                <div class="grid grid-cols-3 gap-2">
+                                                    <template x-for="slot in selectedDay.slots">
+                                                        <button
+                                                            @click="selectSlot(slot)"
+                                                            class="p-2 text-center rounded-lg border transition-colors"
+                                                            :class="{
+                                                                'bg-blue-50 border-blue-500 text-blue-700': selectedSlot === slot,
+                                                                'border-gray-200 hover:border-blue-200': selectedSlot !== slot
+                                                            }"
+                                                        >
+                                                            <span x-text="formatTime(slot.AVA_START_TIME)"></span>
+                                                        </button>
+                                                    </template>
+                                                </div>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </template>
                             </div>
-                        </div>
-
-                        <div x-show="!availableSlots || availableSlots.length === 0" class="text-center py-4 text-gray-500">
-                            No hay citas disponibles
-                        </div>
+                        </template>
                     </div>
                 </div>
 
@@ -231,8 +235,12 @@
                     <h2 class="text-xl font-semibold mb-4">5. Datos del paciente</h2>
                     <form @submit.prevent="submitForm" class="space-y-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700">Nombre completo</label>
-                            <input type="text" x-model="form.patient_name" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" required>
+                            <label class="block text-sm font-medium text-gray-700">Nombre</label>
+                            <input type="text" x-model="form.patient_first_name" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Apellidos</label>
+                            <input type="text" x-model="form.patient_second_name" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" required>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Email</label>
@@ -254,6 +262,15 @@
     <script>
         function appointmentForm() {
             return {
+                init() {
+                    this.$watch('selectedLocation', (value) => {
+                        if (value) {
+                            this.selectedDay = null;
+                            this.selectedSlot = null;
+                            this.initializeCalendar();
+                        }
+                    });
+                },
                 specialty: '',
                 doctor: '',
                 visitType: '',
@@ -264,13 +281,16 @@
                 loadingDoctors: false,
                 loadingVisitTypes: false,
                 form: {
-                    patient_name: '',
+                    patient_first_name: '',
+                    patient_second_name: '',
                     patient_email: '',
                     patient_phone: ''
                 },
                 calendarWeeks: [],
                 currentMonth: new Date(),
                 selectedDay: null,
+                selectedLocation: null,
+                showMoreSlots: false,
                 
                 async loadDoctors() {
                     this.loadingDoctors = true;
@@ -348,19 +368,26 @@
                 },
 
                 async submitForm() {
+                    const formData = {
+                        APP_DATE: this.selectedSlot.AVA_DATE,
+                        APP_START_TIME: this.selectedSlot.AVA_START_TIME,
+                        RESOURCE_ID: this.doctor,
+                        ACTIVITY_ID: this.visitType,
+                        LOCATION_ID: this.selectedSlot.LOCATION_ID,
+                        PATIENT_FIRST_NAME: this.form.patient_first_name,
+                        PATIENT_SECOND_NAME: this.form.patient_second_name,
+                        PATIENT_EMAIL: this.form.patient_email,
+                        PATIENT_MOBILE_PHONE: this.form.patient_phone,
+                        APPOINTMENT_TYPE: '1'
+                    };
+
                     const response = await fetch('/appointments', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                         },
-                        body: JSON.stringify({
-                            date: this.selectedSlot.AVA_DATE,
-                            time: this.selectedSlot.AVA_START_TIME,
-                            doctor_id: this.doctor,
-                            activity_id: this.visitType,
-                            ...this.form
-                        })
+                        body: JSON.stringify(formData)
                     });
 
                     const result = await response.json();
@@ -396,15 +423,23 @@
                 },
 
                 generateCalendarDays(firstDay, lastDay) {
+                    if (!this.selectedLocation) return [];
+                    
                     console.log('Generating calendar for:', firstDay, lastDay);
-                    console.log('Available slots:', this.availableSlots);
+                    console.log('Selected location:', this.selectedLocation);
+                    
                     const weeks = [];
                     let currentWeek = [];
                     
                     // Ajustamos para que la semana empiece en lunes (1) en lugar de domingo (0)
                     const firstDayOfWeek = firstDay.getDay() || 7;
                     
-                    // Añadimos días vacíos para la primera semana (ajustado para empezar en lunes)
+                    // Filtramos los slots por ubicación antes de generar el calendario
+                    const locationSlots = this.availableSlots.filter(slot => 
+                        slot.LOCATION_ID === this.selectedLocation
+                    );
+                    
+                    // Añadimos días vacíos para la primera semana
                     for (let i = 1; i < firstDayOfWeek; i++) {
                         currentWeek.push({ date: null, slots: [] });
                     }
@@ -414,13 +449,7 @@
                         const date = new Date(firstDay.getFullYear(), firstDay.getMonth(), day);
                         const dateStr = this.formatDayNumber(date);
                         
-                        const daySlots = this.availableSlots.filter(slot => {
-                            const matches = slot.AVA_DATE === dateStr;
-                            if (matches) {
-                                console.log(`Found slots for ${dateStr}:`, slot);
-                            }
-                            return matches;
-                        });
+                        const daySlots = locationSlots.filter(slot => slot.AVA_DATE === dateStr);
                         
                         currentWeek.push({ 
                             date: date,
@@ -494,6 +523,10 @@
                             }
                         });
                     }
+                },
+
+                getFirstSlotForLocation(locationId) {
+                    return this.availableSlots.find(slot => slot.LOCATION_ID === locationId);
                 }
             }
         }
