@@ -165,33 +165,37 @@
                                                 <div class="text-center text-sm font-medium text-gray-600 py-2" x-text="day"></div>
                                             </template>
 
-                                            <!-- Calendar days -->
-                                            <template x-for="week in calendarWeeks">
-                                                <template x-for="day in week">
-                                                    <div 
-                                                        class="aspect-square p-1 relative"
-                                                        :class="{
-                                                            'opacity-50': !day.date || !day.slots.length,
-                                                            'cursor-pointer hover:bg-gray-50': day.slots.length
-                                                        }"
-                                                    >
-                                                        <template x-if="day.date">
-                                                            <div
-                                                                @click="day.slots.length && selectDay(day)"
-                                                                class="w-full h-full flex flex-col items-center justify-center rounded-lg"
+                                            <div class="col-span-7 flex flex-col">
+                                                <!-- Calendar days -->
+                                                <template x-for="week in calendarWeeks">
+                                                    <div class="grid grid-cols-7 gap-1">
+                                                        <template x-for="day in week">
+                                                            <div 
+                                                                class="aspect-square p-1 relative"
                                                                 :class="{
-                                                                    'bg-blue-50 ring-2 ring-blue-200': selectedDay && day.date.getTime() === selectedDay.date.getTime(),
-                                                                    'hover:border hover:border-blue-200': day.slots.length
+                                                                    'opacity-50': !day.date || !day.slots.length,
+                                                                    'cursor-pointer hover:bg-gray-50': day.slots.length
                                                                 }"
                                                             >
-                                                                <span class="text-sm" x-text="day.date.getDate()"></span>
-                                                                <template x-if="day.slots.length">
-                                                                    <div class="flex gap-1 mt-1">
-                                                                        <template x-if="getSlotPeriods(day.slots).hasMorning">
-                                                                            <div class="w-1.5 h-1.5 rounded-full bg-blue-400"></div>
-                                                                        </template>
-                                                                        <template x-if="getSlotPeriods(day.slots).hasAfternoon">
-                                                                            <div class="w-1.5 h-1.5 rounded-full bg-green-400"></div>
+                                                                <template x-if="day.date">
+                                                                    <div
+                                                                        @click="day.slots.length && selectDay(day)"
+                                                                        class="w-full h-full flex flex-col items-center justify-center rounded-lg"
+                                                                        :class="{
+                                                                            'bg-blue-50 ring-2 ring-blue-200': selectedDay && day.date.getTime() === selectedDay.date.getTime(),
+                                                                            'hover:border hover:border-blue-200': day.slots.length
+                                                                        }"
+                                                                    >
+                                                                        <span class="text-sm" x-text="day.date.getDate()"></span>
+                                                                        <template x-if="day.slots.length">
+                                                                            <div class="flex gap-1 mt-1">
+                                                                                <template x-if="getSlotPeriods(day.slots).hasMorning">
+                                                                                    <div class="w-1.5 h-1.5 rounded-full bg-blue-400"></div>
+                                                                                </template>
+                                                                                <template x-if="getSlotPeriods(day.slots).hasAfternoon">
+                                                                                    <div class="w-1.5 h-1.5 rounded-full bg-green-400"></div>
+                                                                                </template>
+                                                                            </div>
                                                                         </template>
                                                                     </div>
                                                                 </template>
@@ -199,7 +203,7 @@
                                                         </template>
                                                     </div>
                                                 </template>
-                                            </template>
+                                            </div>
                                         </div>
 
                                         <!-- Available hours for selected day -->
