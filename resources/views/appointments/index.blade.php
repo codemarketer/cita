@@ -271,6 +271,18 @@
                         if (value) {
                             this.selectedDay = null;
                             this.selectedSlot = null;
+
+                            // Encuentra el primer slot disponible para la ubicación seleccionada
+                            const locationSlots = this.availableSlots.filter(slot => 
+                                slot.LOCATION_ID === value
+                            );
+                            
+                            if (locationSlots.length > 0) {
+                                const firstSlotDate = locationSlots[0].AVA_DATE;
+                                const [day, month, year] = firstSlotDate.split('/');
+                                this.currentMonth = new Date(year, parseInt(month) - 1, day);
+                            }
+                            
                             this.initializeCalendar();
                         }
                     });
