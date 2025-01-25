@@ -56,6 +56,7 @@ class AppointmentController extends Controller
             'RESOURCE_ID' => 'required',
             'ACTIVITY_ID' => 'required',
             'LOCATION_ID' => 'required',
+            'PATIENT_ID_NUMBER' => 'required',
             'PATIENT_FIRST_NAME' => 'required',
             'PATIENT_SECOND_NAME' => 'required',
             'PATIENT_EMAIL' => 'required|email',
@@ -63,26 +64,45 @@ class AppointmentController extends Controller
         ]);
 
         try {
-            $appointment = $this->ofimedicService->createAppointment([
-                'APP_DATE' => $validated['APP_DATE'],
-                'APP_START_TIME' => $validated['APP_START_TIME'],
-                'RESOURCE_ID' => $validated['RESOURCE_ID'],
-                'ACTIVITY_ID' => $validated['ACTIVITY_ID'],
-                'LOCATION_ID' => $validated['LOCATION_ID'],
-                'PATIENT_FIRST_NAME' => $validated['PATIENT_FIRST_NAME'],
-                'PATIENT_SECOND_NAME' => $validated['PATIENT_SECOND_NAME'],
-                'PATIENT_EMAIL' => $validated['PATIENT_EMAIL'],
-                'PATIENT_MOBILE_PHONE' => $validated['PATIENT_MOBILE_PHONE'],
-                'APPOINTMENT_TYPE' => '1'
-            ]);
-
+            \Log::info('Creating appointment with data:', ['data' => $validated]);
+            
+            $appointment = $this->ofimedicService->createAppointment($validated);
+            
             \Log::info('Appointment creation response:', ['response' => $appointment]);
             return response()->json($appointment);
         } catch (\Exception $e) {
-            \Log::error('Error creating appointment:', ['error' => $e->getMessage()]);
+            \Log::error('Error creating appointment:', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
             return response()->json([
                 'RESULT' => 'ERROR',
                 'ERROR_MESSAGE' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function checkPatient(Request $request)
+    {
+        try {
+            $patient = $this->ofimedicService->getPatients([
+                'PATIENT_ID' => '',
+                'PATIENT_ID_NUMBER' => $request->dni
+            ]);
+
+            if (!empty($patient)) {
+                return response()->json([
+                    'exists' => true,
+                    'patient' => $patient[0]
+                ]);
+            }
+
+            return response()->json([
+                'exists' => false
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => $e->getMessage()
             ], 500);
         }
     }

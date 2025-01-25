@@ -198,7 +198,8 @@ class OfimedicService
             'OTHER_FIRST_NAME' => '',
             'OTHER_SECOND_NAME' => '',
             'OTHER_DATE_OF_BIRTH' => '',
-            'OTHER_GENDER' => ''
+            'OTHER_GENDER' => '',
+            'APPOINTMENT_TYPE' => '1' //Presencial
         ];
 
         // Combinamos los parámetros proporcionados con los valores por defecto
@@ -217,5 +218,10 @@ class OfimedicService
                 cache()->forget('doctors_specialty_' . $specialty['id']);
             }
         }
+    }
+
+    public function getPatients($params)
+    {
+        return $this->get('GetPatients', $params);
     }
 } 

@@ -12,3 +12,4 @@ Route::get('/appointments/doctors', [AppointmentController::class, 'getDoctors']
 Route::get('/appointments/visit-types', [AppointmentController::class, 'getVisitTypes'])->name('appointments.visitTypes');
 Route::get('/appointments/slots', [AppointmentController::class, 'getAvailableSlots'])->name('appointments.slots');
 Route::post('/appointments', [AppointmentController::class, 'store'])->name('appointments.store');
+Route::get('/appointments/check-patient', [AppointmentController::class, 'checkPatient'])->name('appointments.checkPatient');

@@ -234,9 +234,35 @@
                     </div>
                 </div>
 
-                <!-- Paso 5: Datos del paciente -->
-                <div id="patient-data" x-show="selectedSlot !== null" class="bg-white p-6 rounded-lg shadow">
-                    <h2 class="text-xl font-semibold mb-4">5. Datos del paciente</h2>
+                <!-- Paso 5: Verificación DNI -->
+                <div id="dni-verification" x-show="selectedSlot !== null && !dniVerified" class="bg-white p-6 rounded-lg shadow mb-4">
+                    <h2 class="text-xl font-semibold mb-4">5. Verificación de paciente</h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">DNI/NIE</label>
+                            <input 
+                                type="text" 
+                                x-model="form.dni" 
+                                @keyup.enter="checkPatient()"
+                                class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" 
+                                required>
+                        </div>
+                        <button 
+                            @click="checkPatient()" 
+                            class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700">
+                            Verificar DNI
+                        </button>
+                        <div x-show="patientChecking" class="text-sm text-gray-500">
+                            Verificando DNI...
+                        </div>
+                        <div x-show="patientError" class="text-sm text-red-500" x-text="patientError">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Paso 6: Datos del paciente -->
+                <div id="patient-data" x-show="dniVerified === true && existingPatient === null" class="bg-white p-6 rounded-lg shadow">
+                    <h2 class="text-xl font-semibold mb-4">6. Datos del paciente</h2>
                     <form @submit.prevent="submitForm" class="space-y-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Nombre</label>
@@ -258,6 +284,21 @@
                             Confirmar cita
                         </button>
                     </form>
+                </div>
+
+                <!-- Paso 6: Confirmación para paciente existente -->
+                <div id="patient-confirmation" x-show="dniVerified === true && existingPatient !== null" class="bg-white p-6 rounded-lg shadow">
+                    <h2 class="text-xl font-semibold mb-4">6. Confirmar cita</h2>
+                    <div class="space-y-4">
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <p class="font-medium">Paciente: <span x-text="form.patient_first_name + ' ' + form.patient_second_name"></span></p>
+                            <p class="text-gray-600">Email: <span x-text="form.patient_email"></span></p>
+                            <p class="text-gray-600">Teléfono: <span x-text="form.patient_phone"></span></p>
+                        </div>
+                        <button @click="submitForm" class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700">
+                            Confirmar cita
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -307,6 +348,10 @@
                 selectedDay: null,
                 selectedLocation: null,
                 showMoreSlots: false,
+                patientChecking: false,
+                patientError: null,
+                existingPatient: null,
+                dniVerified: false,
                 
                 async loadDoctors() {
                     this.loadingDoctors = true;
@@ -379,7 +424,58 @@
                         this.selectedSlot = null;
                     } else {
                         this.selectedSlot = slot;
-                        this.$nextTick(() => document.querySelector('#patient-data').scrollIntoView({behavior: 'smooth'}));
+                        this.$nextTick(() => document.querySelector('#dni-verification').scrollIntoView({behavior: 'smooth'}));
+                    }
+                },
+
+                async checkPatient() {
+                    if (!this.form.dni) {
+                        this.patientError = 'Por favor, introduce un DNI/NIE';
+                        return;
+                    }
+                    
+                    console.log('Starting checkPatient with DNI:', this.form.dni);
+                    this.patientChecking = true;
+                    this.patientError = null;
+                    this.existingPatient = null;
+                    this.dniVerified = false;
+
+                    try {
+                        const response = await fetch(`/appointments/check-patient?dni=${this.form.dni}`);
+                        const data = await response.json();
+                        
+                        console.log('Server response:', data);
+
+                        if (data.exists) {
+                            console.log('Patient found in system');
+                            this.existingPatient = data.patient;
+                            console.log('existingPatient after assignment:', this.existingPatient);
+                            
+                            this.form.patient_first_name = data.patient.PATIENT_FIRST_NAME;
+                            this.form.patient_second_name = data.patient.PATIENT_SECOND_NAME;
+                            this.form.patient_email = data.patient.PATIENT_EMAIL;
+                            this.form.patient_phone = data.patient.PATIENT_MOBILE_PHONE;
+                            this.form.patient_id = data.patient.PATIENT_ID;
+                        } else {
+                            console.log('Patient not found in system');
+                            this.existingPatient = null;
+                            this.form.patient_first_name = '';
+                            this.form.patient_second_name = '';
+                            this.form.patient_email = '';
+                            this.form.patient_phone = '';
+                            this.form.patient_id = '';
+                        }
+                        
+                        this.dniVerified = true;
+                        console.log('Final state:', {
+                            existingPatient: this.existingPatient,
+                            dniVerified: this.dniVerified
+                        });
+                    } catch (error) {
+                        console.error('Error in checkPatient:', error);
+                        this.patientError = 'Error al verificar el DNI';
+                    } finally {
+                        this.patientChecking = false;
                     }
                 },
 
@@ -390,12 +486,16 @@
                         RESOURCE_ID: this.doctor,
                         ACTIVITY_ID: this.visitType,
                         LOCATION_ID: this.selectedSlot.LOCATION_ID,
+                        PATIENT_ID: this.form.patient_id || '',
+                        PATIENT_ID_NUMBER: this.form.dni,
                         PATIENT_FIRST_NAME: this.form.patient_first_name,
                         PATIENT_SECOND_NAME: this.form.patient_second_name,
                         PATIENT_EMAIL: this.form.patient_email,
                         PATIENT_MOBILE_PHONE: this.form.patient_phone,
                         APPOINTMENT_TYPE: '1'
                     };
+
+                    console.log('Sending appointment data:', formData);
 
                     const response = await fetch('/appointments', {
                         method: 'POST',
@@ -407,11 +507,13 @@
                     });
 
                     const result = await response.json();
+                    console.log('API Response:', result);
+
                     if (result.RESULT === 'OK') {
                         alert('Cita confirmada correctamente');
                         window.location.reload();
                     } else {
-                        alert('Error al confirmar la cita: ' + result.ERROR_MESSAGE);
+                        alert('Error al confirmar la cita: ' + (result.ERROR_MESSAGE || JSON.stringify(result)));
                     }
                 },
 
