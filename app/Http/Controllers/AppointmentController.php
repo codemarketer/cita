@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Services\OfimedicService;
 use Illuminate\Http\Request;
+use App\Models\Appointment;
 
 class AppointmentController extends Controller
 {
@@ -69,6 +70,19 @@ class AppointmentController extends Controller
             $appointment = $this->ofimedicService->createAppointment($validated);
             
             \Log::info('Appointment creation response:', ['response' => $appointment]);
+
+            if ($appointment['RESULT'] === 'OK') {
+                Appointment::create([
+                    'external_id' => $appointment['APP_ID'],
+                    'patient_email' => $validated['PATIENT_EMAIL'],
+                    'patient_name' => $validated['PATIENT_FIRST_NAME'] . ' ' . $validated['PATIENT_SECOND_NAME'],
+                    'appointment_date' => \Carbon\Carbon::createFromFormat('d/m/Y', $validated['APP_DATE']),
+                    'appointment_time' => $validated['APP_START_TIME'],
+                    'location_id' => $validated['LOCATION_ID'],
+                    'doctor_id' => $validated['RESOURCE_ID'],
+                ]);
+            }
+
             return response()->json($appointment);
         } catch (\Exception $e) {
             \Log::error('Error creating appointment:', [
