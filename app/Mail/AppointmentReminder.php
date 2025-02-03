@@ -37,6 +37,7 @@ class AppointmentReminder extends Mailable
 
         return new Envelope(
             subject: $subject,
+            replyTo: 'secretaria@clinicanyr.com'
         );
     }
 
@@ -46,7 +47,7 @@ class AppointmentReminder extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'view.name',
+            markdown: 'emails.appointment-reminder'
         );
     }
 

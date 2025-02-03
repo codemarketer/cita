@@ -111,7 +111,11 @@ class OfimedicService
         \Log::info('Activities received:', ['activities' => $activities]);
         
         // Lista de IDs a excluir
-        $excludedIds = [30, 53, 67, 72, 9, 10, 12, 50, 5, 6, 49, 52, 81, 87, 51, 86, 54, 51];
+        $excludedIds = [
+            30, 53, 67, 72, 9, 10, 12, 50, 54, 55, 24,
+            5, 6, 49, 52, 71, 81, 85, 36, 87, 31, 51,
+            82, 84, 86
+        ];
         
         // Filtrar las actividades por especialidad y excluyendo los IDs especificados
         return collect($activities)
