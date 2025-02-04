@@ -14,7 +14,7 @@
             <div class="flex justify-center mb-8">
                 <img src="{{ asset('images/nuevologo.svg') }}" alt="Clínica NYR Logo" class="w-full max-w-sm">
             </div>
-            <h1 class="text-3xl font-normal text-gray-900 mb-8 text-center">Solicitar Cita</h1>
+            <h1 class="text-2xl font-normal text-gray-900 mb-8 text-center">Solicitar Cita</h1>
             
             <div class="space-y-8">
                 <!-- Paso 1: Selección de especialidad -->
