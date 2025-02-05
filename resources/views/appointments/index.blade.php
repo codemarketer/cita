@@ -304,7 +304,7 @@
 
             <!-- Move the logo to the bottom -->
             <div class="flex justify-center mt-12">
-                <img src="{{ asset('images/nuevologo.svg') }}" alt="Clínica NYR Logo" class="w-full max-w-xs">
+                <img src="{{ asset('images/nuevologo.svg') }}" alt="Clínica NYR Logo" class="w-full max-w-xs opacity-40">
             </div>
         </div>
     </div>
