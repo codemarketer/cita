@@ -41,4 +41,8 @@ return [
         'password' => env('OFIMEDIC_PASSWORD'),
     ],
 
+    'brevo' => [
+        'key' => env('BREVO_API_KEY'),
+    ],
+
 ];
