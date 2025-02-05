@@ -11,9 +11,6 @@
 <body class="bg-gray-50">
     <div class="min-h-screen" x-data="appointmentForm()">
         <div class="max-w-3xl mx-auto py-12 px-4">
-            <div class="flex justify-center mb-8">
-                <img src="{{ asset('images/nuevologo.svg') }}" alt="Clínica NYR Logo" class="w-full max-w-sm">
-            </div>
             <h1 class="text-2xl font-normal text-gray-900 mb-8 text-center">Solicitar Cita</h1>
             
             <div class="space-y-8">
@@ -303,6 +300,11 @@
                         </button>
                     </div>
                 </div>
+            </div>
+
+            <!-- Move the logo to the bottom -->
+            <div class="flex justify-center mt-12">
+                <img src="{{ asset('images/nuevologo.svg') }}" alt="Clínica NYR Logo" class="w-full max-w-xs">
             </div>
         </div>
     </div>
