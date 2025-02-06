@@ -30,23 +30,20 @@ class TestAppointmentEmail extends Command
     {
         $email = $this->argument('email');
 
-        // Always create a new test appointment
-        $appointment = Appointment::create([
+        // Create a fake appointment without saving to database
+        $appointment = new Appointment([
             'external_id' => 'TEST-' . time(),
             'patient_email' => $email,
             'patient_name' => 'Test Patient',
             'appointment_date' => now()->addDays(3),
             'appointment_time' => '10:00:00',
-            'location_id' => '1',
-            'doctor_id' => 'TEST-DOC',
+            'location_id' => '3', // Clínica NYR Campanar
+            'doctor_id' => 'TEST',
         ]);
 
         try {
             Mail::to($email)->send(new AppointmentReminder($appointment, 3));
             $this->info('Test email sent successfully!');
-            
-            // Clean up test data
-            $appointment->delete();
         } catch (\Exception $e) {
             $this->error('Failed to send test email: ' . $e->getMessage());
         }
