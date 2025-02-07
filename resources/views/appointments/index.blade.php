@@ -23,7 +23,9 @@
                         class="w-full border-gray-300 rounded-md shadow-sm">
                         <option value="">Seleccione una especialidad</option>
                         @foreach($specialties as $specialty)
-                            <option value="{{ $specialty['id'] }}">{{ $specialty['name'] }}</option>
+                            @if($specialty['id'])
+                                <option value="{{ $specialty['id'] }}">{{ $specialty['name'] }}</option>
+                            @endif
                         @endforeach
                     </select>
                 </div>
