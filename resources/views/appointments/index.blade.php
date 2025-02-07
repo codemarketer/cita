@@ -208,6 +208,18 @@
                                             </div>
                                         </div>
 
+                                        <!-- Legend -->
+                                        <div class="flex items-center justify-center gap-6 mt-4 text-sm text-gray-600">
+                                            <div class="flex items-center">
+                                                <div class="w-1.5 h-1.5 rounded-full bg-blue-400 mr-2"></div>
+                                                <span>Mañanas</span>
+                                            </div>
+                                            <div class="flex items-center">
+                                                <div class="w-1.5 h-1.5 rounded-full bg-green-400 mr-2"></div>
+                                                <span>Tardes</span>
+                                            </div>
+                                        </div>
+
                                         <!-- Available hours for selected day -->
                                         <template x-if="selectedDay">
                                             <div id="available-hours" class="mt-6">
