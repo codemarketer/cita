@@ -529,8 +529,8 @@
                     console.log('API Response:', result);
 
                     if (result[0] && result[0].RESULT === 'OK') {
-                        alert('Cita confirmada correctamente');
-                        window.location.reload();
+                        const specialtyName = this.doctors.find(d => d.id === this.doctor)?.specialty || '';
+                        window.location.href = `/appointment-confirmed?date=${this.selectedSlot.AVA_DATE}&time=${this.selectedSlot.AVA_START_TIME}&location=${this.selectedSlot.LOCATION_ID}&specialty=${encodeURIComponent(specialtyName)}`;
                     } else {
                         alert('No se ha podido confirmar la cita. Por favor, contacte con el centro para más información.');
                     }

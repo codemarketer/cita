@@ -11,3 +11,6 @@ Route::get('/appointments/visit-types', [AppointmentController::class, 'getVisit
 Route::get('/appointments/slots', [AppointmentController::class, 'getAvailableSlots'])->name('appointments.slots');
 Route::post('/appointments', [AppointmentController::class, 'store'])->name('appointments.store');
 Route::get('/appointments/check-patient', [AppointmentController::class, 'checkPatient'])->name('appointments.checkPatient');
+Route::get('/appointment-confirmed', function () {
+    return view('appointments.confirmed');
+})->name('appointments.confirmed');
