@@ -23,7 +23,7 @@
                 <div class="text-center mb-6">
                     <p class="text-gray-600">Su cita ha sido programada para:</p>
                     <p class="text-lg font-medium mt-2">{{ date('d/m/Y', strtotime(request('date'))) }} a las {{ request('time') }}</p>
-                    <p class="text-gray-600 mt-2">Especialidad: {{ urldecode(request('specialty')) }}</p>
+                    <p class="text-gray-600 mt-2">{{ urldecode(request('specialty')) }}</p>
                     <p class="text-gray-600 mt-2">
                         @if(request('location') === '3')
                             Clínica NYR Campanar<br>
