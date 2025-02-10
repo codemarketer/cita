@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Services\OfimedicService;
 use Illuminate\Http\Request;
 use App\Models\Appointment;
+use App\Mail\AppointmentConfirmation;
+use Illuminate\Support\Facades\Mail;
 
 class AppointmentController extends Controller
 {
@@ -72,7 +74,7 @@ class AppointmentController extends Controller
             \Log::info('Appointment creation response:', ['response' => $appointment]);
 
             if ($appointment[0]['RESULT'] === 'OK') {
-                Appointment::create([
+                $newAppointment = Appointment::create([
                     'external_id' => $appointment[0]['APP_ID'],
                     'patient_email' => $validated['PATIENT_EMAIL'],
                     'patient_name' => $validated['PATIENT_FIRST_NAME'] . ' ' . $validated['PATIENT_SECOND_NAME'],
@@ -81,6 +83,12 @@ class AppointmentController extends Controller
                     'location_id' => $validated['LOCATION_ID'],
                     'doctor_id' => $validated['RESOURCE_ID'],
                 ]);
+
+                // Enviar correo de confirmación
+                Mail::to($validated['PATIENT_EMAIL'])
+                    ->send(new AppointmentConfirmation($newAppointment));
+
+                return response()->json($appointment);
             }
 
             return response()->json($appointment);
