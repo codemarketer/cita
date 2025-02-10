@@ -528,11 +528,11 @@
                     const result = await response.json();
                     console.log('API Response:', result);
 
-                    if (result.RESULT === 'OK') {
+                    if (result[0] && result[0].RESULT === 'OK') {
                         alert('Cita confirmada correctamente');
                         window.location.reload();
                     } else {
-                        alert('Error al confirmar la cita: ' + (result.ERROR_MESSAGE || JSON.stringify(result)));
+                        alert('No se ha podido confirmar la cita. Por favor, contacte con el centro para más información.');
                     }
                 },
 

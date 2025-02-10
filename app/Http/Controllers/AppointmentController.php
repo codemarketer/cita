@@ -71,9 +71,9 @@ class AppointmentController extends Controller
             
             \Log::info('Appointment creation response:', ['response' => $appointment]);
 
-            if ($appointment['RESULT'] === 'OK') {
+            if ($appointment[0]['RESULT'] === 'OK') {
                 Appointment::create([
-                    'external_id' => $appointment['APP_ID'],
+                    'external_id' => $appointment[0]['APP_ID'],
                     'patient_email' => $validated['PATIENT_EMAIL'],
                     'patient_name' => $validated['PATIENT_FIRST_NAME'] . ' ' . $validated['PATIENT_SECOND_NAME'],
                     'appointment_date' => \Carbon\Carbon::createFromFormat('d/m/Y', $validated['APP_DATE']),
