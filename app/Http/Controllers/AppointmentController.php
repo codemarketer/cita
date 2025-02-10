@@ -84,9 +84,16 @@ class AppointmentController extends Controller
                     'doctor_id' => $validated['RESOURCE_ID'],
                 ]);
 
-                // Enviar correo de confirmación
-                Mail::to($validated['PATIENT_EMAIL'])
-                    ->send(new AppointmentConfirmation($newAppointment));
+                try {
+                    Mail::to($validated['PATIENT_EMAIL'])
+                        ->send(new AppointmentConfirmation($newAppointment));
+                } catch (\Exception $e) {
+                    \Log::error('Error sending confirmation email:', [
+                        'error' => $e->getMessage(),
+                        'appointment_id' => $newAppointment->id
+                    ]);
+                    // Continuamos con el flujo aunque falle el envío del correo
+                }
 
                 return response()->json($appointment);
             }
