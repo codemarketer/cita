@@ -305,9 +305,9 @@
                     <h2 class="text-xl font-semibold mb-4">6. Confirmar cita</h2>
                     <div class="space-y-4">
                         <div class="bg-gray-50 p-4 rounded-lg">
-                            <p class="font-medium">Paciente: <span x-text="form.patient_first_name + ' ' + form.patient_second_name"></span></p>
-                            <p class="text-gray-600">Email: <span x-text="form.patient_email"></span></p>
-                            <p class="text-gray-600">Teléfono: <span x-text="form.patient_phone"></span></p>
+                            <p class="font-medium">Paciente: <span x-text="maskName(form.patient_first_name) + ' ' + maskName(form.patient_second_name)"></span></p>
+                            <p class="text-gray-600">Email: <span x-text="maskEmail(form.patient_email)"></span></p>
+                            <p class="text-gray-600">Teléfono: <span x-text="maskPhone(form.patient_phone)"></span></p>
                         </div>
                         <button @click="submitForm" class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700">
                             Confirmar cita
@@ -667,6 +667,27 @@
 
                 getFirstSlotForLocation(locationId) {
                     return this.availableSlots.find(slot => slot.LOCATION_ID === locationId);
+                },
+
+                maskName(name) {
+                    if (!name) return '';
+                    if (name.length <= 2) return name;
+                    const words = name.split(' ');
+                    return words.map(word => 
+                        word.charAt(0) + '*'.repeat(Math.max(1, word.length - 2)) + word.charAt(word.length - 1)
+                    ).join(' ');
+                },
+
+                maskEmail(email) {
+                    if (!email) return '';
+                    const [localPart, domain] = email.split('@');
+                    const maskedLocal = localPart.substring(0, 2) + '*'.repeat(localPart.length - 3) + localPart.charAt(localPart.length - 1);
+                    return `${maskedLocal}@${domain}`;
+                },
+
+                maskPhone(phone) {
+                    if (!phone) return '';
+                    return '*'.repeat(phone.length - 4) + phone.slice(-4);
                 }
             }
         }
