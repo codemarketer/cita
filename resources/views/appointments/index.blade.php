@@ -250,7 +250,7 @@
 
                 <!-- Paso 5: Verificación DNI -->
                 <div id="dni-verification" x-show="selectedSlot !== null && !dniVerified" class="bg-white p-6 rounded-lg shadow mb-4">
-                    <h2 class="text-xl font-semibold mb-4">5. Verificación de paciente</h2>
+                    <h2 class="text-xl font-semibold mb-4">5. Introduzca el DNI del paciente</h2>
                     <div class="space-y-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700">DNI/NIE</label>
@@ -284,7 +284,7 @@
                             :disabled="!form.authorization"
                             :title="!form.authorization ? 'Debe aceptar la autorización para poder verificar su DNI' : ''"
                             class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">
-                            Verificar DNI
+                            Verificar DNI del paciente
                         </button>
                         <div x-show="patientChecking" class="text-sm text-gray-500">
                             Verificando DNI...
