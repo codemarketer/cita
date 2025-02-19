@@ -453,7 +453,6 @@
                         return;
                     }
                     
-                    console.log('Starting checkPatient with DNI:', this.form.dni);
                     this.patientChecking = true;
                     this.patientError = null;
                     this.existingPatient = null;
@@ -463,33 +462,27 @@
                         const response = await fetch(`/appointments/check-patient?dni=${this.form.dni}`);
                         const data = await response.json();
                         
-                        console.log('Server response:', data);
-
                         if (data.exists) {
-                            console.log('Patient found in system');
                             this.existingPatient = data.patient;
-                            console.log('existingPatient after assignment:', this.existingPatient);
                             
+                            // Guardamos los datos enmascarados y el token
                             this.form.patient_first_name = data.patient.PATIENT_FIRST_NAME;
                             this.form.patient_second_name = data.patient.PATIENT_SECOND_NAME;
                             this.form.patient_email = data.patient.PATIENT_EMAIL;
                             this.form.patient_phone = data.patient.PATIENT_MOBILE_PHONE;
                             this.form.patient_id = data.patient.PATIENT_ID;
+                            this.form._token = data.patient._token; // Guardamos el token
                         } else {
-                            console.log('Patient not found in system');
                             this.existingPatient = null;
                             this.form.patient_first_name = '';
                             this.form.patient_second_name = '';
                             this.form.patient_email = '';
                             this.form.patient_phone = '';
                             this.form.patient_id = '';
+                            this.form._token = '';
                         }
                         
                         this.dniVerified = true;
-                        console.log('Final state:', {
-                            existingPatient: this.existingPatient,
-                            dniVerified: this.dniVerified
-                        });
                     } catch (error) {
                         console.error('Error in checkPatient:', error);
                         this.patientError = 'Error al verificar el DNI';

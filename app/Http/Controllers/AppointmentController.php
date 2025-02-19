@@ -7,9 +7,13 @@ use Illuminate\Http\Request;
 use App\Models\Appointment;
 use App\Mail\AppointmentConfirmation;
 use Illuminate\Support\Facades\Mail;
+use App\Traits\MasksData;
+use Illuminate\Support\Facades\Crypt;
 
 class AppointmentController extends Controller
 {
+    use MasksData;
+    
     protected $ofimedicService;
 
     public function __construct(OfimedicService $ofimedicService)
@@ -53,6 +57,19 @@ class AppointmentController extends Controller
 
     public function store(Request $request)
     {
+        // Decodificamos el token si existe
+        if ($request->has('_token')) {
+            try {
+                $decryptedData = Crypt::decrypt($request->_token);
+                $request->merge($decryptedData);
+            } catch (\Exception $e) {
+                return response()->json([
+                    'RESULT' => 'ERROR',
+                    'ERROR_MESSAGE' => 'Invalid token'
+                ], 400);
+            }
+        }
+
         $validated = $request->validate([
             'APP_DATE' => 'required',
             'APP_START_TIME' => 'required',
@@ -120,9 +137,20 @@ class AppointmentController extends Controller
             ]);
 
             if (!empty($patient)) {
+                // Encriptamos los datos sensibles
+                $encryptedData = Crypt::encrypt($patient[0]);
+                
+                // Devolvemos solo datos enmascarados y el token
                 return response()->json([
                     'exists' => true,
-                    'patient' => $patient[0]
+                    'patient' => [
+                        'PATIENT_FIRST_NAME' => $this->maskName($patient[0]['PATIENT_FIRST_NAME']),
+                        'PATIENT_SECOND_NAME' => $this->maskName($patient[0]['PATIENT_SECOND_NAME']),
+                        'PATIENT_EMAIL' => $this->maskEmail($patient[0]['PATIENT_EMAIL']),
+                        'PATIENT_MOBILE_PHONE' => $this->maskPhone($patient[0]['PATIENT_MOBILE_PHONE']),
+                        'PATIENT_ID' => $patient[0]['PATIENT_ID'],
+                        '_token' => $encryptedData
+                    ]
                 ]);
             }
 
