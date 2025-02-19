@@ -14,3 +14,7 @@ Route::get('/appointments/check-patient', [AppointmentController::class, 'checkP
 Route::get('/appointment-confirmed', function () {
     return view('appointments.confirmed');
 })->name('appointments.confirmed');
+
+Route::get('/privacy-policy', function () {
+    return view('privacy-policy');
+})->name('privacy-policy');

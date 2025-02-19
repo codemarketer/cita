@@ -253,7 +253,7 @@
                     <h2 class="text-xl font-semibold mb-4">5. Introduzca el DNI del paciente</h2>
                     <div class="space-y-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700">DNI/NIE</label>
+                            <label class="block text-sm font-medium text-gray-700">DNI/NIE del paciente</label>
                             <input 
                                 type="text" 
                                 x-model="form.dni" 
@@ -279,12 +279,29 @@
                             </div>
                         </div>
 
+                        <div class="flex items-start space-x-2">
+                            <div class="flex h-5 items-center">
+                                <input 
+                                    type="checkbox" 
+                                    id="privacy_policy"
+                                    x-model="form.privacy_policy"
+                                    class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                    required>
+                            </div>
+                            <div class="ml-3">
+                                <label for="privacy_policy" class="text-sm text-gray-600">
+                                    He leído y acepto la <a href="{{ route('privacy-policy') }}" target="_blank" class="text-blue-600 hover:text-blue-800 underline">Política de Privacidad</a> y consiento el tratamiento de mis datos personales para la gestión de mi cita médica
+                                    <span class="text-red-500">*</span>
+                                </label>
+                            </div>
+                        </div>
+
                         <button 
                             @click="checkPatient()" 
-                            :disabled="!form.authorization"
-                            :title="!form.authorization ? 'Debe aceptar la autorización para poder verificar su DNI' : ''"
+                            :disabled="!form.authorization || !form.privacy_policy"
+                            :title="!form.authorization || !form.privacy_policy ? 'Debe aceptar ambas autorizaciones para poder verificar su DNI' : ''"
                             class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">
-                            Verificar DNI del paciente
+                            Reservar cita
                         </button>
                         <div x-show="patientChecking" class="text-sm text-gray-500">
                             Verificando DNI...
