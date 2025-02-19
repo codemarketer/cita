@@ -261,9 +261,29 @@
                                 class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" 
                                 required>
                         </div>
+
+                        <div class="flex items-start space-x-2">
+                            <div class="flex h-5 items-center">
+                                <input 
+                                    type="checkbox" 
+                                    id="authorization"
+                                    x-model="form.authorization"
+                                    class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                    required>
+                            </div>
+                            <div class="ml-3">
+                                <label for="authorization" class="text-sm text-gray-600">
+                                    Confirmo que los datos introducidos son correctos y autorizo a la clínica a verificar mi identidad en su base de datos para la correcta gestión de mi cita
+                                    <span class="text-red-500">*</span>
+                                </label>
+                            </div>
+                        </div>
+
                         <button 
                             @click="checkPatient()" 
-                            class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700">
+                            :disabled="!form.authorization"
+                            :title="!form.authorization ? 'Debe aceptar la autorización para poder verificar su DNI' : ''"
+                            class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">
                             Verificar DNI
                         </button>
                         <div x-show="patientChecking" class="text-sm text-gray-500">
