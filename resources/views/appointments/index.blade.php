@@ -250,7 +250,7 @@
 
                 <!-- Paso 5: Verificación DNI -->
                 <div id="dni-verification" x-show="selectedSlot !== null && !dniVerified" class="bg-white p-6 rounded-lg shadow mb-4">
-                    <h2 class="text-xl font-semibold mb-4">5. Introduzca el DNI del paciente</h2>
+                    <h2 class="text-xl font-semibold mb-4">5. Datos del paciente</h2>
                     <div class="space-y-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700">DNI/NIE del paciente</label>
@@ -258,7 +258,8 @@
                                 type="text" 
                                 x-model="form.dni" 
                                 @keyup.enter="checkPatient()"
-                                class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" 
+                                placeholder="Introduzca el DNI/NIE del paciente"
+                                class="mt-1 block w-full px-4 py-2 border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-200 focus:border-blue-400 placeholder-gray-400" 
                                 required>
                         </div>
 
@@ -290,7 +291,7 @@
                             </div>
                             <div class="ml-3">
                                 <label for="privacy_policy" class="text-sm text-gray-600">
-                                    He leído y acepto la <a href="{{ route('privacy-policy') }}" target="_blank" class="text-blue-600 hover:text-blue-800 underline">Política de Privacidad</a> y consiento el tratamiento de mis datos personales para la gestión de mi cita médica
+                                    He leído y acepto la <a href="{{ route('privacy-policy') }}" target="_blank" class="text-blue-600 hover:text-blue-800 underline">Política de Privacidad</a> y consiento el tratamiento de mis datos personales para la gestión de mi cita médica. Acepto recibir la confirmación de mi cita en el correo electrónico facilitado
                                     <span class="text-red-500">*</span>
                                 </label>
                             </div>
@@ -317,19 +318,39 @@
                     <form @submit.prevent="submitForm" class="space-y-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Nombre</label>
-                            <input type="text" x-model="form.patient_first_name" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" required>
+                            <input 
+                                type="text" 
+                                x-model="form.patient_first_name" 
+                                placeholder="Introduzca el nombre del paciente"
+                                class="mt-1 block w-full px-4 py-2 border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-200 focus:border-blue-400 placeholder-gray-400" 
+                                required>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Apellidos</label>
-                            <input type="text" x-model="form.patient_second_name" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" required>
+                            <input 
+                                type="text" 
+                                x-model="form.patient_second_name" 
+                                placeholder="Introduzca los apellidos del paciente"
+                                class="mt-1 block w-full px-4 py-2 border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-200 focus:border-blue-400 placeholder-gray-400" 
+                                required>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Email</label>
-                            <input type="email" x-model="form.patient_email" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" required>
+                            <input 
+                                type="email" 
+                                x-model="form.patient_email" 
+                                placeholder="Introduzca un email de contacto"
+                                class="mt-1 block w-full px-4 py-2 border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-200 focus:border-blue-400 placeholder-gray-400" 
+                                required>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Teléfono</label>
-                            <input type="tel" x-model="form.patient_phone" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" required>
+                            <input 
+                                type="tel" 
+                                x-model="form.patient_phone" 
+                                placeholder="Introduzca un teléfono de contacto"
+                                class="mt-1 block w-full px-4 py-2 border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-200 focus:border-blue-400 placeholder-gray-400" 
+                                required>
                         </div>
                         <button type="submit" class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700">
                             Confirmar cita
