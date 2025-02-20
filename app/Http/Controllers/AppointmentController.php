@@ -71,7 +71,6 @@ class AppointmentController extends Controller
         ]);
 
         try {
-            // Si hay datos del paciente en la sesión, los usamos
             if (session()->has('patient_data')) {
                 $patientData = session('patient_data');
                 $validated['PATIENT_EMAIL'] = $patientData['PATIENT_EMAIL'];
@@ -79,12 +78,8 @@ class AppointmentController extends Controller
                 $validated['PATIENT_SECOND_NAME'] = $patientData['PATIENT_SECOND_NAME'];
                 $validated['PATIENT_MOBILE_PHONE'] = $patientData['PATIENT_MOBILE_PHONE'];
             }
-
-            \Log::info('Creating appointment with data:', ['data' => $validated]);
             
             $appointment = $this->ofimedicService->createAppointment($validated);
-            
-            \Log::info('Appointment creation response:', ['response' => $appointment]);
 
             if ($appointment[0]['RESULT'] === 'OK') {
                 $newAppointment = Appointment::create([
@@ -97,31 +92,14 @@ class AppointmentController extends Controller
                     'doctor_id' => $validated['RESOURCE_ID'],
                 ]);
 
-                // Limpiamos la sesión después de crear la cita exitosamente
                 session()->forget('patient_data');
 
                 try {
-                    \Log::info('Attempting to send confirmation email:', [
-                        'email' => $validated['PATIENT_EMAIL'],
-                        'is_new_patient' => !session()->has('patient_data'),
-                        'appointment_data' => [
-                            'patient_name' => $newAppointment->patient_name,
-                            'appointment_date' => $newAppointment->appointment_date,
-                            'appointment_time' => $newAppointment->appointment_time,
-                        ]
-                    ]);
-                    
                     Mail::to($validated['PATIENT_EMAIL'])
                         ->send(new AppointmentConfirmation($newAppointment));
-                        
-                    \Log::info('Email sent successfully');
                 } catch (\Exception $e) {
                     \Log::error('Error sending confirmation email:', [
-                        'error' => $e->getMessage(),
-                        'error_trace' => $e->getTraceAsString(),
-                        'appointment_id' => $newAppointment->id,
-                        'patient_email' => $validated['PATIENT_EMAIL'],
-                        'is_new_patient' => !session()->has('patient_data')
+                        'error' => $e->getMessage()
                     ]);
                 }
 
@@ -130,10 +108,6 @@ class AppointmentController extends Controller
 
             return response()->json($appointment);
         } catch (\Exception $e) {
-            \Log::error('Error creating appointment:', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
             return response()->json([
                 'RESULT' => 'ERROR',
                 'ERROR_MESSAGE' => $e->getMessage()
