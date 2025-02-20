@@ -57,19 +57,6 @@ class AppointmentController extends Controller
 
     public function store(Request $request)
     {
-        // Decodificamos el token si existe
-        if ($request->has('_token')) {
-            try {
-                $decryptedData = Crypt::decrypt($request->_token);
-                $request->merge($decryptedData);
-            } catch (\Exception $e) {
-                return response()->json([
-                    'RESULT' => 'ERROR',
-                    'ERROR_MESSAGE' => 'Invalid token'
-                ], 400);
-            }
-        }
-
         $validated = $request->validate([
             'APP_DATE' => 'required',
             'APP_START_TIME' => 'required',
@@ -82,6 +69,15 @@ class AppointmentController extends Controller
             'PATIENT_EMAIL' => 'required|email',
             'PATIENT_MOBILE_PHONE' => 'required'
         ]);
+
+        // Si hay datos del paciente en la sesión, los usamos
+        if (session()->has('patient_data')) {
+            $patientData = session('patient_data');
+            $validated['PATIENT_EMAIL'] = $patientData['PATIENT_EMAIL'];
+            $validated['PATIENT_FIRST_NAME'] = $patientData['PATIENT_FIRST_NAME'];
+            $validated['PATIENT_SECOND_NAME'] = $patientData['PATIENT_SECOND_NAME'];
+            $validated['PATIENT_MOBILE_PHONE'] = $patientData['PATIENT_MOBILE_PHONE'];
+        }
 
         try {
             \Log::info('Creating appointment with data:', ['data' => $validated]);
@@ -137,10 +133,12 @@ class AppointmentController extends Controller
             ]);
 
             if (!empty($patient)) {
-                // Encriptamos los datos sensibles
-                $encryptedData = Crypt::encrypt($patient[0]);
+                // Guardamos los datos reales en la sesión
+                session([
+                    'patient_data' => $patient[0]
+                ]);
                 
-                // Devolvemos solo datos enmascarados y el token
+                // Devolvemos solo datos enmascarados
                 return response()->json([
                     'exists' => true,
                     'patient' => [
@@ -148,8 +146,7 @@ class AppointmentController extends Controller
                         'PATIENT_SECOND_NAME' => $this->maskName($patient[0]['PATIENT_SECOND_NAME']),
                         'PATIENT_EMAIL' => $this->maskEmail($patient[0]['PATIENT_EMAIL']),
                         'PATIENT_MOBILE_PHONE' => $this->maskPhone($patient[0]['PATIENT_MOBILE_PHONE']),
-                        'PATIENT_ID' => $patient[0]['PATIENT_ID'],
-                        '_token' => $encryptedData
+                        'PATIENT_ID' => $patient[0]['PATIENT_ID']
                     ]
                 ]);
             }
