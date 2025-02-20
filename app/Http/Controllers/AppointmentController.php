@@ -70,16 +70,16 @@ class AppointmentController extends Controller
             'PATIENT_MOBILE_PHONE' => 'required'
         ]);
 
-        // Si hay datos del paciente en la sesión, los usamos
-        if (session()->has('patient_data')) {
-            $patientData = session('patient_data');
-            $validated['PATIENT_EMAIL'] = $patientData['PATIENT_EMAIL'];
-            $validated['PATIENT_FIRST_NAME'] = $patientData['PATIENT_FIRST_NAME'];
-            $validated['PATIENT_SECOND_NAME'] = $patientData['PATIENT_SECOND_NAME'];
-            $validated['PATIENT_MOBILE_PHONE'] = $patientData['PATIENT_MOBILE_PHONE'];
-        }
-
         try {
+            // Si hay datos del paciente en la sesión, los usamos
+            if (session()->has('patient_data')) {
+                $patientData = session('patient_data');
+                $validated['PATIENT_EMAIL'] = $patientData['PATIENT_EMAIL'];
+                $validated['PATIENT_FIRST_NAME'] = $patientData['PATIENT_FIRST_NAME'];
+                $validated['PATIENT_SECOND_NAME'] = $patientData['PATIENT_SECOND_NAME'];
+                $validated['PATIENT_MOBILE_PHONE'] = $patientData['PATIENT_MOBILE_PHONE'];
+            }
+
             \Log::info('Creating appointment with data:', ['data' => $validated]);
             
             $appointment = $this->ofimedicService->createAppointment($validated);
@@ -97,6 +97,9 @@ class AppointmentController extends Controller
                     'doctor_id' => $validated['RESOURCE_ID'],
                 ]);
 
+                // Limpiamos la sesión después de crear la cita exitosamente
+                session()->forget('patient_data');
+
                 try {
                     Mail::to($validated['PATIENT_EMAIL'])
                         ->send(new AppointmentConfirmation($newAppointment));
@@ -105,7 +108,6 @@ class AppointmentController extends Controller
                         'error' => $e->getMessage(),
                         'appointment_id' => $newAppointment->id
                     ]);
-                    // Continuamos con el flujo aunque falle el envío del correo
                 }
 
                 return response()->json($appointment);
@@ -138,7 +140,6 @@ class AppointmentController extends Controller
                     'patient_data' => $patient[0]
                 ]);
                 
-                // Devolvemos solo datos enmascarados
                 return response()->json([
                     'exists' => true,
                     'patient' => [
@@ -150,6 +151,9 @@ class AppointmentController extends Controller
                     ]
                 ]);
             }
+
+            // Si el paciente no existe, limpiamos la sesión
+            session()->forget('patient_data');
 
             return response()->json([
                 'exists' => false
