@@ -103,7 +103,12 @@ class AppointmentController extends Controller
                 try {
                     \Log::info('Attempting to send confirmation email:', [
                         'email' => $validated['PATIENT_EMAIL'],
-                        'is_new_patient' => !session()->has('patient_data')
+                        'is_new_patient' => !session()->has('patient_data'),
+                        'appointment_data' => [
+                            'patient_name' => $newAppointment->patient_name,
+                            'appointment_date' => $newAppointment->appointment_date,
+                            'appointment_time' => $newAppointment->appointment_time,
+                        ]
                     ]);
                     
                     Mail::to($validated['PATIENT_EMAIL'])
@@ -113,6 +118,7 @@ class AppointmentController extends Controller
                 } catch (\Exception $e) {
                     \Log::error('Error sending confirmation email:', [
                         'error' => $e->getMessage(),
+                        'error_trace' => $e->getTraceAsString(),
                         'appointment_id' => $newAppointment->id,
                         'patient_email' => $validated['PATIENT_EMAIL'],
                         'is_new_patient' => !session()->has('patient_data')
