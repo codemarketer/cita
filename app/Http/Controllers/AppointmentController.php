@@ -101,12 +101,21 @@ class AppointmentController extends Controller
                 session()->forget('patient_data');
 
                 try {
+                    \Log::info('Attempting to send confirmation email:', [
+                        'email' => $validated['PATIENT_EMAIL'],
+                        'is_new_patient' => !session()->has('patient_data')
+                    ]);
+                    
                     Mail::to($validated['PATIENT_EMAIL'])
                         ->send(new AppointmentConfirmation($newAppointment));
+                        
+                    \Log::info('Email sent successfully');
                 } catch (\Exception $e) {
                     \Log::error('Error sending confirmation email:', [
                         'error' => $e->getMessage(),
-                        'appointment_id' => $newAppointment->id
+                        'appointment_id' => $newAppointment->id,
+                        'patient_email' => $validated['PATIENT_EMAIL'],
+                        'is_new_patient' => !session()->has('patient_data')
                     ]);
                 }
 
