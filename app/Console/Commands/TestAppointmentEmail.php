@@ -39,6 +39,8 @@ class TestAppointmentEmail extends Command
             'appointment_time' => '10:00:00',
             'location_id' => '3', // Clínica NYR Campanar
             'doctor_id' => 'TEST',
+            'doctor_name' => 'Dr. Test',
+            'specialty' => 'Test Specialty'
         ]);
 
         try {

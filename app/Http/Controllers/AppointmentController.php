@@ -67,7 +67,9 @@ class AppointmentController extends Controller
             'PATIENT_FIRST_NAME' => 'required',
             'PATIENT_SECOND_NAME' => 'required',
             'PATIENT_EMAIL' => 'required|email',
-            'PATIENT_MOBILE_PHONE' => 'required'
+            'PATIENT_MOBILE_PHONE' => 'required',
+            'doctor_name' => 'required|string',
+            'specialty_name' => 'required|string'
         ]);
 
         try {
@@ -90,6 +92,8 @@ class AppointmentController extends Controller
                     'appointment_time' => $validated['APP_START_TIME'],
                     'location_id' => $validated['LOCATION_ID'],
                     'doctor_id' => $validated['RESOURCE_ID'],
+                    'doctor_name' => $validated['doctor_name'],
+                    'specialty' => $validated['specialty_name'],
                 ]);
 
                 session()->forget('patient_data');

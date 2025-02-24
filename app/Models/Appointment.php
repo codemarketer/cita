@@ -15,7 +15,9 @@ class Appointment extends Model
         'location_id',
         'doctor_id',
         'reminder_3days_sent_at',
-        'reminder_24h_sent_at'
+        'reminder_24h_sent_at',
+        'doctor_name',
+        'specialty',
     ];
 
     protected $casts = [
