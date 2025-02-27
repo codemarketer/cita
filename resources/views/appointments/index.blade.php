@@ -352,8 +352,16 @@
                                 class="mt-1 block w-full px-4 py-2 border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-200 focus:border-blue-400 placeholder-gray-400" 
                                 required>
                         </div>
-                        <button type="submit" class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700">
-                            Confirmar cita
+                        <button type="submit" 
+                            class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                            :disabled="isSubmitting">
+                            <template x-if="isSubmitting">
+                                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                            </template>
+                            <span x-text="isSubmitting ? 'Confirmando...' : 'Confirmar cita'"></span>
                         </button>
                     </form>
                 </div>
@@ -367,8 +375,16 @@
                             <p class="text-gray-600">Email: <span x-text="maskEmail(form.patient_email)"></span></p>
                             <p class="text-gray-600">Teléfono: <span x-text="maskPhone(form.patient_phone)"></span></p>
                         </div>
-                        <button @click="submitForm" class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700">
-                            Confirmar cita
+                        <button @click="submitForm" 
+                            :disabled="isSubmitting"
+                            class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center">
+                            <template x-if="isSubmitting">
+                                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                            </template>
+                            <span x-text="isSubmitting ? 'Confirmando...' : 'Confirmar cita'"></span>
                         </button>
                     </div>
                 </div>
@@ -429,6 +445,7 @@
                 patientError: null,
                 existingPatient: null,
                 dniVerified: false,
+                isSubmitting: false,
                 
                 async loadDoctors() {
                     this.loadingDoctors = true;
@@ -550,28 +567,36 @@
                 },
 
                 async submitForm() {
-                    const response = await fetch('/appointments', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                        },
-                        body: JSON.stringify(this.form)
-                    });
+                    this.isSubmitting = true;
+                    try {
+                        const response = await fetch('/appointments', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                            },
+                            body: JSON.stringify(this.form)
+                        });
 
-                    // Ver la respuesta completa antes de intentar parsearla
-                    const responseText = await response.text();
-                    console.log('Response status:', response.status);
-                    console.log('Response text:', responseText);
+                        // Ver la respuesta completa antes de intentar parsearla
+                        const responseText = await response.text();
+                        console.log('Response status:', response.status);
+                        console.log('Response text:', responseText);
 
-                    if (responseText.includes('Cita reservada correctamente')) {
-                        // Obtener el nombre de la especialidad del select
-                        const specialtyElement = document.querySelector(`select option[value="${this.specialty}"]`);
-                        const specialtyName = specialtyElement ? specialtyElement.textContent : '';
-                        
-                        window.location.href = `/appointment-confirmed?date=${this.selectedSlot.AVA_DATE}&time=${this.selectedSlot.AVA_START_TIME}&location=${this.selectedSlot.LOCATION_ID}&specialty=${encodeURIComponent(specialtyName)}`;
-                    } else {
-                        alert('No se ha podido confirmar la cita. Por favor, contacte con el centro para más información.');
+                        if (responseText.includes('Cita reservada correctamente')) {
+                            // Obtener el nombre de la especialidad del select
+                            const specialtyElement = document.querySelector(`select option[value="${this.specialty}"]`);
+                            const specialtyName = specialtyElement ? specialtyElement.textContent : '';
+                            
+                            window.location.href = `/appointment-confirmed?date=${this.selectedSlot.AVA_DATE}&time=${this.selectedSlot.AVA_START_TIME}&location=${this.selectedSlot.LOCATION_ID}&specialty=${encodeURIComponent(specialtyName)}`;
+                        } else {
+                            alert('No se ha podido confirmar la cita. Por favor, contacte con el centro para más información.');
+                        }
+                    } catch (error) {
+                        console.error('Error submitting form:', error);
+                        alert('Ha ocurrido un error al procesar su solicitud. Por favor, inténtelo de nuevo.');
+                    } finally {
+                        this.isSubmitting = false;
                     }
                 },
 
