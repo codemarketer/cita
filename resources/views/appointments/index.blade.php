@@ -550,36 +550,21 @@
                 },
 
                 async submitForm() {
-                    const formData = {
-                        APP_DATE: this.selectedSlot.AVA_DATE,
-                        APP_START_TIME: this.selectedSlot.AVA_START_TIME,
-                        RESOURCE_ID: this.doctor,
-                        ACTIVITY_ID: this.visitType,
-                        LOCATION_ID: this.selectedSlot.LOCATION_ID,
-                        PATIENT_ID: this.form.patient_id || '',
-                        PATIENT_ID_NUMBER: this.form.dni,
-                        PATIENT_FIRST_NAME: this.form.patient_first_name,
-                        PATIENT_SECOND_NAME: this.form.patient_second_name,
-                        PATIENT_EMAIL: this.form.patient_email,
-                        PATIENT_MOBILE_PHONE: this.form.patient_phone,
-                        APPOINTMENT_TYPE: '1'
-                    };
-
-                    console.log('Sending appointment data:', formData);
-
                     const response = await fetch('/appointments', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                         },
-                        body: JSON.stringify(formData)
+                        body: JSON.stringify(this.form)
                     });
 
-                    const result = await response.json();
-                    console.log('API Response:', result);
+                    // Ver la respuesta completa antes de intentar parsearla
+                    const responseText = await response.text();
+                    console.log('Response status:', response.status);
+                    console.log('Response text:', responseText);
 
-                    if (result[0] && result[0].RESULT === 'OK') {
+                    if (responseText.includes('Cita reservada correctamente')) {
                         // Obtener el nombre de la especialidad del select
                         const specialtyElement = document.querySelector(`select option[value="${this.specialty}"]`);
                         const specialtyName = specialtyElement ? specialtyElement.textContent : '';
