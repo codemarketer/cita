@@ -580,19 +580,27 @@
                 async submitForm() {
                     this.isSubmitting = true;
                     try {
+                        // Obtener el nombre de la especialidad y del doctor
+                        const specialtyElement = document.querySelector(`select option[value="${this.specialty}"]`);
+                        const specialtyName = specialtyElement ? specialtyElement.textContent : '';
+                        const doctorElement = document.querySelector(`select option[value="${this.doctor}"]`);
+                        const doctorName = doctorElement ? doctorElement.textContent : '';
+
                         const formData = {
                             APP_DATE: this.selectedSlot.AVA_DATE,
                             APP_START_TIME: this.selectedSlot.AVA_START_TIME,
+                            LOCATION_ID: this.selectedSlot.LOCATION_ID,
                             RESOURCE_ID: this.doctor,
                             ACTIVITY_ID: this.visitType,
-                            LOCATION_ID: this.selectedSlot.LOCATION_ID,
                             PATIENT_ID: this.form.patient_id || '',
                             PATIENT_ID_NUMBER: this.form.dni,
                             PATIENT_FIRST_NAME: this.form.patient_first_name,
                             PATIENT_SECOND_NAME: this.form.patient_second_name,
                             PATIENT_EMAIL: this.form.patient_email,
                             PATIENT_MOBILE_PHONE: this.form.patient_phone,
-                            APPOINTMENT_TYPE: '1'
+                            APPOINTMENT_TYPE: '1',
+                            doctor_name: doctorName,
+                            specialty_name: specialtyName
                         };
 
                         console.log('Sending appointment data:', formData);
@@ -601,26 +609,42 @@
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
-                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                                'Accept': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest'
                             },
                             body: JSON.stringify(formData)
                         });
 
-                        const result = await response.json();
-                        console.log('API Response:', result);
+                        // Log the response status and headers
+                        console.log('Response status:', response.status);
+                        console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+                        
+                        // Get the raw response text first
+                        const responseText = await response.text();
+                        console.log('Raw response:', responseText);
+                        
+                        // Try to parse as JSON if it looks like JSON
+                        let result;
+                        try {
+                            result = JSON.parse(responseText);
+                        } catch (e) {
+                            console.error('Failed to parse response as JSON:', e);
+                            // Si la respuesta es HTML, probablemente hay un error en el servidor
+                            if (responseText.includes('<!DOCTYPE html>')) {
+                                throw new Error('El servidor ha devuelto una página HTML en lugar de JSON. Esto puede indicar un error en el servidor o que la sesión ha expirado.');
+                            }
+                            throw new Error('Server returned invalid JSON response');
+                        }
 
                         if (result[0] && result[0].RESULT === 'OK') {
-                            // Obtener el nombre de la especialidad del select
-                            const specialtyElement = document.querySelector(`select option[value="${this.specialty}"]`);
-                            const specialtyName = specialtyElement ? specialtyElement.textContent : '';
-                            
                             window.location.href = `/appointment-confirmed?date=${this.selectedSlot.AVA_DATE}&time=${this.selectedSlot.AVA_START_TIME}&location=${this.selectedSlot.LOCATION_ID}&specialty=${encodeURIComponent(specialtyName)}`;
                         } else {
                             alert('No se ha podido confirmar la cita. Por favor, contacte con el centro para más información.');
                         }
                     } catch (error) {
                         console.error('Error submitting form:', error);
-                        alert('Ha ocurrido un error al procesar su solicitud. Por favor, inténtelo de nuevo.');
+                        alert(error.message || 'Ha ocurrido un error al procesar su solicitud. Por favor, inténtelo de nuevo.');
                     } finally {
                         this.isSubmitting = false;
                     }
