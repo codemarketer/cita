@@ -593,6 +593,20 @@
 
                 formatDate(dateStr) {
                     if (!dateStr) return '';
+                    
+                    // Si es un objeto Date, convertirlo a string
+                    if (dateStr instanceof Date) {
+                        const day = dateStr.getDate().toString().padStart(2, '0');
+                        const month = (dateStr.getMonth() + 1).toString().padStart(2, '0');
+                        const year = dateStr.getFullYear();
+                        dateStr = `${day}/${month}/${year}`;
+                    }
+                    
+                    // Si no es un string, intentar convertirlo
+                    if (typeof dateStr !== 'string') {
+                        dateStr = dateStr.toString();
+                    }
+                    
                     const [day, month, year] = dateStr.split('/');
                     const date = new Date(year, month - 1, day);
                     return new Intl.DateTimeFormat('es-ES', { 
