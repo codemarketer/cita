@@ -414,6 +414,7 @@
                 selectedSlot: null,
                 loadingDoctors: false,
                 loadingVisitTypes: false,
+                loadingSlots: false,
                 form: {
                     patient_first_name: '',
                     patient_second_name: '',
